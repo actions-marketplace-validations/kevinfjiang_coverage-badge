@@ -42,15 +42,16 @@ runs:
         elif ((80 > ${{ inputs.coverage }} && ${{ inputs.coverage }} >= 60)); then
           COLOR="yellow"
         elif ((60 > ${{ inputs.coverage }} && ${{ inputs.coverage }} >= 0)); then
-          COLOR ="red"
+          COLOR="red"
         else
           exit 1
         fi
+        echo "coverage=${{ inputs.coverage }}" | sed 's/[^a-z0-9=]*//g' >> $GITHUB_OUTPUT
         echo "color=$COLOR" >> $GITHUB_OUTPUT
     - id: make_badge
       shell: bash
-      run: echo "badge=https://img.shields.io/badge/Coverage-${{ inputs.coverage }}%25-${{ steps.choose_color.outputs.color }}.svg?style=${{ inputs.style }}" >> $GITHUB_OUTPUT
-    - uses: actions/checkout@v3
+      run: echo "badge=https://img.shields.io/badge/Coverage-${{ steps.choose_color.outputs.coverage }}%25-${{ steps.choose_color.outputs.color }}.svg?style=${{ inputs.style }}" >> $GITHUB_OUTPUT
+    - uses: actions/checkout@v4
       if: ${{ inputs.change_file }}
       with:
         ref: ${{ inputs.ref }}
@@ -61,7 +62,7 @@ runs:
       run: |
         # Really long command, adds badge with color and coverage between markers in README.md
         sed -i '/<!-- Coverage Comment:Begin -->/,/<!-- Coverage Comment:End -->/c\<!-- Coverage Comment:Begin -->\n[coverage_badge]: ${{ steps.make_badge.outputs.badge }}\n<!-- Coverage Comment:End -->' ${{ inputs.change_file }}
-    - uses: stefanzweifel/git-auto-commit-action@v4
+    - uses: stefanzweifel/git-auto-commit-action@v5
       if: ${{ inputs.change_file }}
       with:
         commit_message: Update coverage badge
